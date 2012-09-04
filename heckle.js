@@ -34,6 +34,7 @@ function readPosts(config) {
     post.url = getURL(config, post);
     posts.push(post);
   });
+  posts.sort(function(a, b){return b.date - a.date;});
   return posts;
 }
 
@@ -72,33 +73,32 @@ function ensureDirectories(path) {
   }
 }
 
-function prepareIncludes() {
+function prepareIncludes(ctx) {
   if (!util.exists("_includes/", true)) return;
   fs.readdirSync("_includes/").forEach(function(file) {
-    Mold.define(file.match(/^(.*?)\.[^\.]+$/)[1], Mold.bake(fs.readFileSync("_includes/" + file, "utf8")));
+    Mold.define(file.match(/^(.*?)\.[^\.]+$/)[1],
+                Mold.bake(fs.readFileSync("_includes/" + file, "utf8"), ctx));
   });
 }
 
 var layouts = {};
-function getLayout(name) {
+function getLayout(name, ctx) {
   if (layouts.hasOwnProperty(name)) return layouts[name];
-  var tmpl = Mold.bake(fs.readFileSync("_layouts/" + name + ".html", "utf8"));
+  var tmpl = Mold.bake(fs.readFileSync("_layouts/" + name + ".html", "utf8"), ctx);
   layouts[name] = tmpl;
   return tmpl;
 }
 
-// Global for global access from templates
-var site;
-
 function generate() {
-  var config = readConfig(), posts = readPosts(config), tags = gatherTags(posts);
-  prepareIncludes();
-  site = {posts: posts, tags: tags, config: config};
+  var config = readConfig(), posts = readPosts(config);
+  var ctx = {site: {posts: posts, tags: gatherTags(posts), config: config},
+             dateFormat: require("node-dateformat")};
+  prepareIncludes(ctx);
   if (util.exists("_site", true)) rmrf.sync("_site");
   posts.forEach(function(post) {
     var path = "_site/" + post.url;
     ensureDirectories(path);
-    fs.writeFileSync(path, getLayout(post.layout || "post.html")(post), "utf8");
+    fs.writeFileSync(path, getLayout(post.layout || "post.html", ctx)(post), "utf8");
   });
   function walkDir(dir) {
     fs.readdirSync(dir).forEach(function(fname) {
@@ -108,14 +108,15 @@ function generate() {
         walkDir(file + "/");
       } else {
         var out = "_site/" + file;
-        ensureDirectories(out)
+        ensureDirectories(out);
         if (/\.md$/.test(fname) && hasFrontMatter(file)) {
+          out = out.replace(/\.md$/, ".html");
           var split = readFrontMatter(fs.readFileSync(file, "utf8"));
           var doc = split.front;
           doc.content = marked(split.main);
           doc.name = fname.match(/^(.*?)\.[^\.]+$/)[1];
           doc.url = file;
-          fs.writeFileSync(out, getLayout(doc.layout || "default.html")(doc), "utf8");
+          fs.writeFileSync(out, getLayout(doc.layout || "default.html", ctx)(doc), "utf8");
         } else {
           util.copyFileSync(file, out);
         }
