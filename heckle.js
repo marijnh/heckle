@@ -2,7 +2,7 @@ var fs = require("fs");
 var rmrf = require("rimraf");
 var yaml = require("js-yaml");
 var marked = require("marked");
-var Mold = require("mold/mold.node");
+var Mold = require("./mold");
 var util = require("./util");
 
 function hasFrontMatter(file) {
