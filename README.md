@@ -20,24 +20,11 @@ Don't use Heckle at this point if you want something stable and
 finished. It's a work in progress, and may be radically changed or
 pitilessly abandoned at any time.
 
-If that didn't scare you off, these are the dependencies that you can
-install with [`npm`][2]:
+If that didn't scare you off, you should be able to get dependencies
+with `npm install`.
 
-[2]: https://npmjs.org/
-
-- `marked`
-- `rimraf`
-- `underscore`
-
-And these I had to fetch directly with git because the `npm` packages
-didn't work or exists (`node-dateformat` and `js-yaml`):
-
-    cd node_modules
-    git clone https://github.com/felixge/node-dateformat.git
-    git clone https://github.com/nodeca/js-yaml.git
-
-When all dependencies are present, you should be able to change to the
-directory that contains your blog files, and run...
+When the dependencies have been installed, you should be able to
+change to the directory that contains your blog files, and run...
 
     nodejs /path/to/heckle/heckle.js
 
