@@ -16,7 +16,7 @@ function hasFrontMatter(file) {
 function readFrontMatter(file) {
   if (/^---\n/.test(file)) {
     var end = file.search(/\n---\n/);
-    if (end != -1) return {front: yaml.load(file.slice(4, end + 1)), main: file.slice(end + 5)};
+    if (end != -1) return {front: yaml.load(file.slice(4, end + 1)) || {}, main: file.slice(end + 5)};
   }
   return {front: {}, main: file};
 }
@@ -53,7 +53,7 @@ var defaults = {
 };
 
 function readConfig() {
-  var config = util.exists("_config.yml") ? yaml.load(fs.readFileSync("_config.yml", "utf8")) : {};
+  var config = (util.exists("_config.yml") && yaml.load(fs.readFileSync("_config.yml", "utf8"))) || {};
   for (var opt in defaults) if (defaults.hasOwnProperty(opt) && !config.hasOwnProperty(opt))
     config[opt] = defaults[opt];
   return config;
