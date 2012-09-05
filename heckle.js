@@ -92,7 +92,7 @@ function getLayout(name, ctx) {
 function generate() {
   var config = readConfig(), posts = readPosts(config);
   var ctx = {site: {posts: posts, tags: gatherTags(posts), config: config},
-             dateFormat: require("node-dateformat")};
+             dateFormat: require("dateformat")};
   prepareIncludes(ctx);
   if (util.exists("_site", true)) rmrf.sync("_site");
   posts.forEach(function(post) {

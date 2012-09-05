@@ -1,0 +1,17 @@
+{
+  "name": "Heckle",
+  "version":"0.1.0",
+  "main": "heckle.js",
+  "description": "Static blog generator",
+  "licenses": [{"type": "MIT",
+                "url": "https://raw.github.com/marijnh/heckle/master/LICENSE"}],
+  "dependencies": {"dateformat": "1.x.x",
+                   "marked": "0.2.x",
+                   "rimraf": "2.x.x",
+                   "js-yaml": "git+https://github.com/nodeca/js-yaml.git#656966b254461a66c0d5f081a2a18ea262472b07"},
+  "bugs": "http://github.com/marijnh/heckle/issues",
+  "keywords": ["Jekyll", "Blog"],
+  "homepage": "https://github.com/marijnh/heckle",
+  "author": "Marijn Haverbeke <marijnh@gmail.com>",
+  "repositories": [{"type": "git", "url": "https://github.com/marijnh/heckle.git"}]
+}
