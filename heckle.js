@@ -24,14 +24,18 @@ function readFrontMatter(file) {
 function readPosts(config) {
   var posts = [];
   fs.readdirSync("_posts/").forEach(function(file) {
-    var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.md$/);
-    if (!d) return;
+    var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.(md|link)$/);
     var split = readFrontMatter(fs.readFileSync("_posts/" + file, "utf8"));
     var post = split.front;
     post.date = new Date(d[1], d[2], d[3]);
-    post.content = marked(split.main);
+    if (d[5] == "md") {
+      post.content = marked(split.main);
+      post.url = getURL(config, post);
+    } else if (d[5] == "link") {
+      post.content = Mold.bake("<p>Read this post at <a href=\"<?t $arg?>\"<?t $arg?></a>.</p>")(post.url);
+      post.isLink = true;
+    }
     post.name = d[4];
-    post.url = getURL(config, post);
     posts.push(post);
   });
   posts.sort(function(a, b){return b.date - a.date;});
@@ -98,6 +102,7 @@ function generate() {
   prepareIncludes(ctx);
   if (util.exists("_site", true)) rmrf.sync("_site");
   posts.forEach(function(post) {
+    if (post.isLink) return;
     var path = "_site/" + post.url;
     ensureDirectories(path);
     fs.writeFileSync(path, getLayout(post.layout || "post.html", ctx)(post), "utf8");
