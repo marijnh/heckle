@@ -27,7 +27,7 @@ function readPosts(config) {
     var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.(md|link)$/);
     var split = readFrontMatter(fs.readFileSync("_posts/" + file, "utf8"));
     var post = split.front;
-    post.date = new Date(d[1], d[2], d[3]);
+    post.date = new Date(d[1], d[2] - 1, d[3]);
     post.name = d[4];
     if (!post.tags) post.tags = [];
     if (d[5] == "md") {
