@@ -102,7 +102,7 @@ function generate() {
   });
   function walkDir(dir) {
     fs.readdirSync(dir).forEach(function(fname) {
-      if (fname.charAt(0) == "_") return;
+      if (/^[_\.]/.test(fname)) return;
       var file = dir + fname;
       if (fs.statSync(file).isDirectory()) {
         walkDir(file + "/");
