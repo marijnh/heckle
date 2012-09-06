@@ -15,14 +15,18 @@
       if (open == -1) {
         addString(template);
         break;
-      }
-      else {
-        addString(template.slice(0, open));
+      } else {
         var close = template.indexOf("?" + (template.charAt(open) == "<" ? ">" : "]"), open + 2);
         if (close == -1) throw new Error("'<?' without matching '?>' in template.");
-        var content = template.slice(open + 2, close), match = content.match(/^([\w\.]+)(?:\s+((?:\r|\n|.)+))?$/);
-        if (!match) throw new Error("Template command ('" + content + "') does not follow 'command [arguments]' format.");
-        parts.push({command: match[1], args: match[2]});
+        var content = template.slice(open + 2, close);
+        if (/^xml\b/.test(content)) {
+          addString(template.slice(0, close + 2));
+        } else {
+          addString(template.slice(0, open));
+          var match = content.match(/^([\w\.]+)(?:\s+((?:\r|\n|.)+))?$/);
+          if (!match) throw new Error("Template command ('" + content + "') does not follow 'command [arguments]' format.");
+          parts.push({command: match[1], args: match[2]});
+        }
         template = template.slice(close + 2);
       }
     }
