@@ -28,14 +28,15 @@ function readPosts(config) {
     var split = readFrontMatter(fs.readFileSync("_posts/" + file, "utf8"));
     var post = split.front;
     post.date = new Date(d[1], d[2], d[3]);
+    post.name = d[4];
+    if (!post.tags) post.tags = [];
     if (d[5] == "md") {
       post.content = marked(split.main);
       post.url = getURL(config, post);
     } else if (d[5] == "link") {
-      post.content = Mold.bake("<p>Read this post at <a href=\"<?t $arg?>\"<?t $arg?></a>.</p>")(post.url);
+      post.content = Mold.bake("<p>Read this post at <a href=\"<?t $arg?>\"><?t $arg?></a>.</p>")(post.url);
       post.isLink = true;
     }
-    post.name = d[4];
     posts.push(post);
   });
   posts.sort(function(a, b){return b.date - a.date;});
@@ -48,6 +49,7 @@ function gatherTags(posts) {
     if (post.tags) post.tags.forEach(function(tag) {
       (tags.hasOwnProperty(tag) ? tags[tag] : (tags[tag] = [])).push(post);
     });
+    else post.tags = [];
   });
   return tags;
 }
