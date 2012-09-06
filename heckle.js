@@ -83,8 +83,10 @@ function prepareIncludes(ctx) {
 
 var layouts = {};
 function getLayout(name, ctx) {
+  if (name.indexOf(".") == -1) name = name + ".html";
   if (layouts.hasOwnProperty(name)) return layouts[name];
-  var tmpl = Mold.bake(fs.readFileSync("_layouts/" + name + ".html", "utf8"), ctx);
+  var tmpl = Mold.bake(fs.readFileSync("_layouts/" + name, "utf8"), ctx);
+  tmpl.filename = name;
   layouts[name] = tmpl;
   return tmpl;
 }
@@ -110,13 +112,14 @@ function generate() {
         var out = "_site/" + file;
         ensureDirectories(out);
         if (/\.md$/.test(fname) && hasFrontMatter(file)) {
-          out = out.replace(/\.md$/, ".html");
           var split = readFrontMatter(fs.readFileSync(file, "utf8"));
           var doc = split.front;
+          var layout = getLayout(doc.layout || "default.html", ctx);
           doc.content = marked(split.main);
           doc.name = fname.match(/^(.*?)\.[^\.]+$/)[1];
           doc.url = file;
-          fs.writeFileSync(out, getLayout(doc.layout || "default.html", ctx)(doc), "utf8");
+          out = out.replace(/\.md$/, layout.filename.match(/(\.\w+|)$/)[1]);
+          fs.writeFileSync(out, layout(doc), "utf8");
         } else {
           util.copyFileSync(file, out);
         }
