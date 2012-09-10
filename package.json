@@ -1,5 +1,5 @@
 {
-  "name": "Heckle",
+  "name": "heckle-blog",
   "version":"0.1.0",
   "main": "heckle.js",
   "description": "Static blog generator",
