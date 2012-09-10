@@ -1,7 +1,13 @@
 (function(evalMaker) {
   var custom = {};
   exports.define = function(name, func) {custom[name] = func;};
-  var myEval = evalMaker(custom);
+
+  var escapeHTML = exports.escapeHTML = function(text) {
+    var HTMLspecial = {"<": "&lt;", "&": "&amp;", "\"": "&quot;"};
+    return String(text).replace(/[<&\"]/g, function(ch) {return HTMLspecial[ch];});
+  };
+
+  var myEval = evalMaker(custom, escapeHTML);
 
   function splitTemplate(template) {
     var parts = [];
@@ -104,14 +110,10 @@
     func += "return __output ? \"\" : __out.join(\"\");\n})";
     return myEval(func, ctx);
   };
-})(function(_customCommands) {
+})(function(_customCommands, _escapeHTML) {
   function _forEachIn(obj, f) {
     var hop = Object.prototype.hasOwnProperty, i = 0;
     for (var n in obj) if (hop.call(obj, n)) f(n, obj[n], i++);
-  }
-  function _escapeHTML(text) {
-    var HTMLspecial = {"<": "&lt;", "&": "&amp;", "\"": "&quot;"};
-    return String(text).replace(/[<&\"]/g, function(ch) {return HTMLspecial[ch];});
   }
   function _dispatchCustom(name, arg, output) {
     if (!_customCommands.hasOwnProperty(name))

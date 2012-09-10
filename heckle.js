@@ -4,6 +4,25 @@ var yaml = require("js-yaml");
 var marked = require("marked");
 var Mold = require("./mold");
 var util = require("./util");
+CodeMirror = require("codemirror/lib/util/runmode-standalone.js");
+
+marked.setOptions({highlight: highlightCode, gfm: true});
+
+function highlightCode(code, lang) {
+  if (!lang) return code;
+  if (!CodeMirror.modes.hasOwnProperty(lang)) {
+    try { require("codemirror/mode/" + lang + "/" + lang); }
+    catch(e) { console.log(e.toString());CodeMirror.modes[lang] = false; }
+  }
+  if (CodeMirror.modes[lang]) {
+    var html = "";
+    CodeMirror.runMode(code, lang, function(token, style) {
+      if (style) html += "<span class=cm-" + style + ">" + Mold.escapeHTML(token) + "</span>";
+      else html += token;
+    });
+    return html;
+  } else return code;
+}
 
 function hasFrontMatter(file) {
   var fd = fs.openSync(file, "r");
@@ -34,7 +53,8 @@ function readPosts(config) {
       post.content = marked(split.main);
       post.url = getURL(config, post);
     } else if (d[5] == "link") {
-      post.content = Mold.bake("<p>Read this post at <a href=\"<?t $arg?>\"><?t $arg?></a>.</p>")(post.url);
+      var escd = Mold.escapeHTML(post.url);
+      post.content = "<p>Read this post at <a href=\"" + escd + "\">" + escd + "</a>.</p>";
       post.isLink = true;
     }
     posts.push(post);
