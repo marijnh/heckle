@@ -17,7 +17,7 @@ function highlightCode(code, lang) {
   if (CodeMirror.modes[lang]) {
     var html = "";
     CodeMirror.runMode(code, lang, function(token, style) {
-      if (style) html += "<span class=cm-" + style + ">" + Mold.escapeHTML(token) + "</span>";
+      if (style) html += "<span class=\"cm-" + style + "\">" + Mold.escapeHTML(token) + "</span>";
       else html += token;
     });
     return html;
