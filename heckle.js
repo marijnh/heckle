@@ -2,7 +2,7 @@ var fs = require("fs");
 var rmrf = require("rimraf");
 var yaml = require("js-yaml");
 var marked = require("marked");
-var Mold = require("./mold");
+var Mold = require("mold-template");
 var util = require("./util");
 CodeMirror = require("codemirror/lib/util/runmode-standalone.js");
 
