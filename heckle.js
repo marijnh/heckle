@@ -49,6 +49,7 @@ function readPosts(config) {
     post.date = new Date(d[1], d[2] - 1, d[3]);
     post.name = d[4];
     if (!post.tags) post.tags = [];
+    if (!post.tags.forEach && post.tags.split) post.tags = post.tags.split(/\s+/);
     if (d[5] == "md") {
       post.content = marked(split.main);
       post.url = getURL(config, post);
