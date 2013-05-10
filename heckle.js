@@ -4,7 +4,7 @@ var yaml = require("js-yaml");
 var marked = require("marked");
 var Mold = require("mold-template");
 var util = require("./util");
-CodeMirror = require("codemirror/lib/util/runmode-standalone.js");
+CodeMirror = require("codemirror/addon/runmode/runmode.node.js");
 
 marked.setOptions({highlight: highlightCode, gfm: true});
 
