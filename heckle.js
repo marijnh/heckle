@@ -44,6 +44,7 @@ function readPosts(config) {
   var posts = [];
   fs.readdirSync("_posts/").forEach(function(file) {
     var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.(md|link)$/);
+    if (!d) return;
     var split = readFrontMatter(fs.readFileSync("_posts/" + file, "utf8"));
     var post = split.front;
     post.date = new Date(d[1], d[2] - 1, d[3]);
