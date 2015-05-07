@@ -49,22 +49,24 @@ function readContents(contents) {
 function readPosts(config) {
   var posts = [];
   fs.readdirSync("_posts/").forEach(function(file) {
-    var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.(md|markdown|link)$/);
+    var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.(md|markdown|link|html)$/);
     if (!d) return;
     var contents = readContents(fs.readFileSync("_posts/" + file, "utf8"));
-    var post = contents.frontMatter;
+    var post = contents.frontMatter || {};
     post.date = new Date(d[1], d[2] - 1, d[3]);
     post.name = d[4];
     if (!post.tags) post.tags = [];
     if (!post.tags.forEach && post.tags.split) post.tags = post.tags.split(/\s+/);
     var extension = d[5];
-    if (extension == "md" || extension == "markdown") {
-      post.content = marked(contents.mainContent);
-      post.url = getURL(config, post);
-    } else if (d[5] == "link") {
+    if (extension == "link") {
       var escd = Mold.escapeHTML(post.url);
       post.content = "<p>Read this post at <a href=\"" + escd + "\">" + escd + "</a>.</p>";
       post.isLink = true;
+    } else {
+      post.content = (extension == "md" || extension == "markdown") ?
+        marked(contents.mainContent) :
+        contents.mainContent;
+      post.url = getURL(config, post);
     }
     posts.push(post);
   });
@@ -148,10 +150,12 @@ function generate() {
         var out = "_site/" + file;
         ensureDirectories(out);
         var contents = readContents(fs.readFileSync(file, "utf8"));
-        if (/\.(md|markdown)$/.test(fname) && contents.frontMatter) {
+        if (contents.frontMatter) {
           var doc = contents.frontMatter;
           var layout = getLayout(doc.layout || "default.html", ctx);
-          doc.content = marked(contents.mainContent);
+          doc.content = /\.(md|markdown)$/.test(fname) ?
+            marked(contents.mainContent) :
+            contents.mainContent;
           doc.name = fname.match(/^(.*?)\.[^\.]+$/)[1];
           doc.url = file;
           out = out.replace(/\.(md|markdown)$/, layout.filename.match(/(\.\w+|)$/)[1]);
