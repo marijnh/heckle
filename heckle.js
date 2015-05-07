@@ -43,7 +43,7 @@ function readFrontMatter(file) {
 function readPosts(config) {
   var posts = [];
   fs.readdirSync("_posts/").forEach(function(file) {
-    var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.(md|link)$/);
+    var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.(md|markdown|link)$/);
     if (!d) return;
     var split = readFrontMatter(fs.readFileSync("_posts/" + file, "utf8"));
     var post = split.front;
@@ -51,7 +51,8 @@ function readPosts(config) {
     post.name = d[4];
     if (!post.tags) post.tags = [];
     if (!post.tags.forEach && post.tags.split) post.tags = post.tags.split(/\s+/);
-    if (d[5] == "md") {
+    var extension = d[5];
+    if (extension == "md" || extension == "markdown") {
       post.content = marked(split.main);
       post.url = getURL(config, post);
     } else if (d[5] == "link") {
@@ -140,14 +141,14 @@ function generate() {
       } else {
         var out = "_site/" + file;
         ensureDirectories(out);
-        if (/\.md$/.test(fname) && hasFrontMatter(file)) {
+        if (/\.(md|markdown)$/.test(fname) && hasFrontMatter(file)) {
           var split = readFrontMatter(fs.readFileSync(file, "utf8"));
           var doc = split.front;
           var layout = getLayout(doc.layout || "default.html", ctx);
           doc.content = marked(split.main);
           doc.name = fname.match(/^(.*?)\.[^\.]+$/)[1];
           doc.url = file;
-          out = out.replace(/\.md$/, layout.filename.match(/(\.\w+|)$/)[1]);
+          out = out.replace(/\.(md|markdown)$/, layout.filename.match(/(\.\w+|)$/)[1]);
           fs.writeFileSync(out, layout(doc), "utf8");
         } else {
           util.copyFileSync(file, out);
