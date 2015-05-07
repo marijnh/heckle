@@ -24,20 +24,26 @@ function highlightCode(code, lang) {
   } else return code;
 }
 
-function hasFrontMatter(file) {
-  var fd = fs.openSync(file, "r");
-  var b = new Buffer(4);
-  var ret = fs.readSync(fd, b, 0, 4, 0) == 4 && b.toString() == "---\n";
-  fs.closeSync(fd);
-  return ret;
-}
-
-function readFrontMatter(file) {
-  if (/^---\n/.test(file)) {
-    var end = file.search(/\n---\n/);
-    if (end != -1) return {front: yaml.load(file.slice(4, end + 1)) || {}, main: file.slice(end + 5)};
+/**
+ * @param contents
+ *        A string containing the file contents.
+ * @return
+ *        An object with the properties `frontMatter` and `mainContent`,
+ *        representing the file front matter and a string containing the
+ *        remainder of the file, respectively.  `frontMatter` will be null if
+ *        the file contains no front matter block, otherwise the block's YAML
+ *        properties will be available as JS properties.
+ */
+function readContents(contents) {
+  if (/^---\n/.test(contents)) {
+    var end = contents.search(/\n---\n/);
+    if (end != -1)
+      return {
+        frontMatter: yaml.load(contents.slice(4, end + 1)) || {},
+        mainContent: contents.slice(end + 5)
+      };
   }
-  return {front: {}, main: file};
+  return {frontMatter: null, mainContent: contents};
 }
 
 function readPosts(config) {
@@ -45,15 +51,15 @@ function readPosts(config) {
   fs.readdirSync("_posts/").forEach(function(file) {
     var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.(md|markdown|link)$/);
     if (!d) return;
-    var split = readFrontMatter(fs.readFileSync("_posts/" + file, "utf8"));
-    var post = split.front;
+    var contents = readContents(fs.readFileSync("_posts/" + file, "utf8"));
+    var post = contents.frontMatter;
     post.date = new Date(d[1], d[2] - 1, d[3]);
     post.name = d[4];
     if (!post.tags) post.tags = [];
     if (!post.tags.forEach && post.tags.split) post.tags = post.tags.split(/\s+/);
     var extension = d[5];
     if (extension == "md" || extension == "markdown") {
-      post.content = marked(split.main);
+      post.content = marked(contents.mainContent);
       post.url = getURL(config, post);
     } else if (d[5] == "link") {
       var escd = Mold.escapeHTML(post.url);
@@ -141,11 +147,11 @@ function generate() {
       } else {
         var out = "_site/" + file;
         ensureDirectories(out);
-        if (/\.(md|markdown)$/.test(fname) && hasFrontMatter(file)) {
-          var split = readFrontMatter(fs.readFileSync(file, "utf8"));
-          var doc = split.front;
+        var contents = readContents(fs.readFileSync(file, "utf8"));
+        if (/\.(md|markdown)$/.test(fname) && contents.frontMatter) {
+          var doc = contents.frontMatter;
           var layout = getLayout(doc.layout || "default.html", ctx);
-          doc.content = marked(split.main);
+          doc.content = marked(contents.mainContent);
           doc.name = fname.match(/^(.*?)\.[^\.]+$/)[1];
           doc.url = file;
           out = out.replace(/\.(md|markdown)$/, layout.filename.match(/(\.\w+|)$/)[1]);
