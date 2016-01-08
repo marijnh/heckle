@@ -28,7 +28,7 @@ function highlightCode(code, lang) {
  * @param contents
  *        A string containing the file contents.
  * @return
- *        An object with the properties `frontMatter` and `mainContent`,
+ *        An object with the properties `frontMatter` and `mainText`,
  *        representing the file front matter and a string containing the
  *        remainder of the file, respectively.  `frontMatter` will be null if
  *        the file contains no front matter block, otherwise the block's YAML
@@ -40,10 +40,10 @@ function readContents(contents) {
     if (end != -1)
       return {
         frontMatter: yaml.load(contents.slice(4, end + 1)) || {},
-        mainContent: contents.slice(end + 5)
+        mainText: contents.slice(end + 5)
       };
   }
-  return {frontMatter: null, mainContent: contents};
+  return {frontMatter: null, mainText: contents};
 }
 
 function readPosts(config) {
@@ -64,8 +64,8 @@ function readPosts(config) {
       post.isLink = true;
     } else {
       post.content = (extension == "md" || extension == "markdown") ?
-        marked(contents.mainContent) :
-        contents.mainContent;
+        marked(contents.mainText) :
+        contents.mainText;
       post.url = getURL(config, post);
     }
     posts.push(post);
@@ -122,10 +122,20 @@ var layouts = {};
 function getLayout(name, ctx) {
   if (name.indexOf(".") == -1) name = name + ".html";
   if (layouts.hasOwnProperty(name)) return layouts[name];
-  var tmpl = Mold.bake(fs.readFileSync("_layouts/" + name, "utf8"), ctx);
+  var tmpl = function layout(doc) {
+    var text = layout.template(doc);
+    if (layout.parent) {
+      var wrapper = Object.create(doc, {content: {value: text}});
+      text = getLayout(layout.parent, ctx)(wrapper);
+    }
+    return text;
+  };
   tmpl.filename = name;
-  layouts[name] = tmpl;
-  return tmpl;
+  var contents = readContents(fs.readFileSync("_layouts/" + name, "utf8"));
+  tmpl.template = Mold.bake(contents.mainText, ctx);
+  tmpl.parent = contents.frontMatter && "layout" in contents.frontMatter ?
+    contents.frontMatter.layout : null;
+  return layouts[name] = tmpl;
 }
 
 function generate() {
@@ -154,8 +164,8 @@ function generate() {
           var doc = contents.frontMatter;
           var layout = getLayout(doc.layout || "default.html", ctx);
           doc.content = /\.(md|markdown)$/.test(fname) ?
-            marked(contents.mainContent) :
-            contents.mainContent;
+            marked(contents.mainText) :
+            contents.mainText;
           doc.name = fname.match(/^(.*?)\.[^\.]+$/)[1];
           doc.url = file;
           out = out.replace(/\.(md|markdown)$/, layout.filename.match(/(\.\w+|)$/)[1]);
