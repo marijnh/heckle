@@ -86,7 +86,8 @@ function gatherTags(posts) {
 }
 
 var defaults = {
-  postLink: "${name}.html"
+  postLink: "${name}.html",
+  postFileName: "${url}"
 };
 
 function readConfig() {
@@ -96,10 +97,13 @@ function readConfig() {
   return config;
 }
 
+function fillTemplate(tpl, vars) {
+  for (var prop in vars) tpl = tpl.replace("${" + prop + "}", vars[prop]);
+  return tpl;
+}
+
 function getURL(config, post) {
-  var link = config.postLink;
-  for (var prop in post) link = link.replace("${" + prop + "}", post[prop]);
-  return link;
+  return fillTemplate(config.postLink, post);
 }
 
 function ensureDirectories(path) {
@@ -146,7 +150,7 @@ function generate() {
   if (util.exists("_site", true)) rmrf.sync("_site");
   posts.forEach(function(post) {
     if (post.isLink) return;
-    var path = "_site/" + post.url;
+    var path = "_site/" + fillTemplate(config.postFileName, post);
     ensureDirectories(path);
     fs.writeFileSync(path, getLayout(post.layout || "post.html", ctx)(post), "utf8");
   });
