@@ -1,28 +1,9 @@
+var path = require("path");
 var fs = require("fs");
 var rmrf = require("rimraf");
 var yaml = require("js-yaml");
-var marked = require("marked");
 var Mold = require("mold-template");
 var util = require("./util");
-CodeMirror = require("codemirror/addon/runmode/runmode.node.js");
-
-marked.setOptions({highlight: highlightCode, gfm: true});
-
-function highlightCode(code, lang) {
-  if (!lang) return Mold.escapeHTML(code);
-  if (!CodeMirror.modes.hasOwnProperty(lang)) {
-    try { require("codemirror/mode/" + lang + "/" + lang); }
-    catch(e) { console.log(e.toString());CodeMirror.modes[lang] = false; }
-  }
-  if (CodeMirror.modes[lang]) {
-    var html = "";
-    CodeMirror.runMode(code, lang, function(token, style) {
-      if (style) html += "<span class=\"cm-" + style + "\">" + Mold.escapeHTML(token) + "</span>";
-      else html += Mold.escapeHTML(token);
-    });
-    return html;
-  } else return Mold.escapeHTML(code);
-}
 
 /**
  * @param contents
@@ -46,6 +27,12 @@ function readContents(contents) {
   return {frontMatter: null, mainText: contents};
 }
 
+let renderMarkdown = null;
+
+function getRenderMarkdown(config) {
+  return require(config.markdownRenderer ? path.resolve(process.cwd(), config.markdownRenderer) : "./markdownRenderer");
+}
+
 function readPosts(config) {
   var posts = [];
   fs.readdirSync("_posts/").forEach(function(file) {
@@ -64,7 +51,7 @@ function readPosts(config) {
       post.isLink = true;
     } else {
       post.content = (extension == "md" || extension == "markdown") ?
-        marked(contents.mainText) :
+        renderMarkdown(contents.mainText) :
         contents.mainText;
       post.url = getURL(config, post);
     }
@@ -139,7 +126,9 @@ function getLayout(name, ctx) {
 }
 
 function generate() {
-  var config = readConfig(), posts = readPosts(config);
+  var config = readConfig();
+  renderMarkdown = getRenderMarkdown(config);
+  var posts = readPosts(config);
   var ctx = {site: {posts: posts, tags: gatherTags(posts), config: config},
              dateFormat: require("dateformat")};
   prepareIncludes(ctx);
@@ -164,7 +153,7 @@ function generate() {
           var doc = contents.frontMatter;
           var layout = getLayout(doc.layout || "default.html", ctx);
           doc.content = /\.(md|markdown)$/.test(fname) ?
-            marked(contents.mainText) :
+            renderMarkdown(contents.mainText) :
             contents.mainText;
           doc.name = fname.match(/^(.*?)\.[^\.]+$/)[1];
           doc.url = file;
