@@ -1,4 +1,8 @@
-const marked = require("marked")
+const markdownIt = require("markdown-it")
 const highlightCode = require("./highlightCode")
-marked.setOptions({highlight: highlightCode, gfm: true})
-module.exports = marked
+
+let markdown = markdownIt({highlight: highlightCode, langPrefix: 'lang-', html: true})
+markdown.use(require("markdown-it-anchor"), {
+  slugify: s => s.toLowerCase().replace(/\W/g, '-').replace(/-+/g, '-')
+});
+module.exports = markdown.render.bind(markdown)
