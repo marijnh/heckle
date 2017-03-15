@@ -9,7 +9,7 @@ CodeMirror = require("codemirror/addon/runmode/runmode.node.js");
 marked.setOptions({highlight: highlightCode, gfm: true});
 
 function highlightCode(code, lang) {
-  if (!lang) return code;
+  if (!lang) return Mold.escapeHTML(code);
   if (!CodeMirror.modes.hasOwnProperty(lang)) {
     try { require("codemirror/mode/" + lang + "/" + lang); }
     catch(e) { console.log(e.toString());CodeMirror.modes[lang] = false; }
@@ -21,7 +21,7 @@ function highlightCode(code, lang) {
       else html += Mold.escapeHTML(token);
     });
     return html;
-  } else return code;
+  } else return Mold.escapeHTML(code);
 }
 
 /**
