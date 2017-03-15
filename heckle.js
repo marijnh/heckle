@@ -46,7 +46,7 @@ function readPosts(config) {
     if (!post.tags.forEach && post.tags.split) post.tags = post.tags.split(/\s+/);
     var extension = d[5];
     if (extension == "link") {
-      var escd = Mold.escapeHTML(post.url);
+      var escd = Mold.prototype.escapeHTML(post.url);
       post.content = "<p>Read this post at <a href=\"" + escd + "\">" + escd + "</a>.</p>";
       post.isLink = true;
     } else {
@@ -101,47 +101,49 @@ function ensureDirectories(path) {
   }
 }
 
-function prepareIncludes(ctx) {
-  if (!util.exists("_includes/", true)) return;
-  fs.readdirSync("_includes/").forEach(function(file) {
-    Mold.define(file.match(/^(.*?)\.[^\.]+$/)[1],
-                Mold.bake(fs.readFileSync("_includes/" + file, "utf8"), ctx));
-  });
+function prepareMold(ctx) {
+  var mold = new Mold(ctx)
+  if (util.exists("_includes/", true))
+    fs.readdirSync("_includes/").forEach(function(file) {
+      var name = file.match(/^(.*?)\.[^\.]+$/)[1]
+      mold.defs[name] = mold.bake(name, fs.readFileSync("_includes/" + file, "utf8"));
+    });
+  return mold
 }
 
 var layouts = {};
-function getLayout(name, ctx) {
+function getLayout(name, mold) {
   if (name.indexOf(".") == -1) name = name + ".html";
   if (layouts.hasOwnProperty(name)) return layouts[name];
   var tmpl = function layout(doc) {
     var text = layout.template(doc);
     if (layout.parent) {
       var wrapper = Object.create(doc, {content: {value: text}});
-      text = getLayout(layout.parent, ctx)(wrapper);
+      text = getLayout(layout.parent, mold)(wrapper);
     }
     return text;
   };
   tmpl.filename = name;
   var contents = readContents(fs.readFileSync("_layouts/" + name, "utf8"));
-  tmpl.template = Mold.bake(contents.mainText, ctx);
+  tmpl.template = mold.bake(name, contents.mainText);
   tmpl.parent = contents.frontMatter && "layout" in contents.frontMatter ?
     contents.frontMatter.layout : null;
   return layouts[name] = tmpl;
 }
 
-function generate() {
+function generate(mold) {
   var config = readConfig();
   renderMarkdown = getRenderMarkdown(config);
   var posts = readPosts(config);
   var ctx = {site: {posts: posts, tags: gatherTags(posts), config: config},
              dateFormat: require("dateformat")};
-  prepareIncludes(ctx);
+  var mold = prepareMold(ctx);
   if (util.exists("_site", true)) rmrf.sync("_site");
   posts.forEach(function(post) {
     if (post.isLink) return;
     var path = "_site/" + fillTemplate(config.postFileName, post);
     ensureDirectories(path);
-    fs.writeFileSync(path, getLayout(post.layout || "post.html", ctx)(post), "utf8");
+    fs.writeFileSync(path, getLayout(post.layout || "post.html", mold)(post), "utf8");
   });
   function walkDir(dir) {
     fs.readdirSync(dir).forEach(function(fname) {
@@ -155,7 +157,7 @@ function generate() {
         var contents = readContents(fs.readFileSync(file, "utf8"));
         if (contents.frontMatter) {
           var doc = contents.frontMatter;
-          var layout = getLayout(doc.layout || "default.html", ctx);
+          var layout = getLayout(doc.layout || "default.html", mold);
           doc.content = /\.(md|markdown)$/.test(fname) ?
             renderMarkdown(contents.mainText) :
             contents.mainText;

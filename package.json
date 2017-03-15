@@ -8,13 +8,17 @@
   "dependencies": {"dateformat": "1.x.x",
                    "markdown-it": "^8.3.1",
                    "markdown-it-anchor": "^4.0.0",
-                   "rimraf": "2.x.x",
-                   "js-yaml": "1.x.x",
-                   "codemirror": "git+https://github.com/marijnh/CodeMirror.git",
-                   "mold-template": "1.x.x"},
+                   "rimraf": "^2.0.0",
+                   "js-yaml": "^1.0.0",
+                   "codemirror": "^5.24.0",
+                   "mold-template": "2.0.1"},
   "bugs": "http://github.com/marijnh/heckle/issues",
   "keywords": ["Jekyll", "Blog"],
   "homepage": "https://github.com/marijnh/heckle",
   "author": "Marijn Haverbeke <marijnh@gmail.com>",
-  "repositories": [{"type": "git", "url": "https://github.com/marijnh/heckle.git"}]
+  "repository": {"type": "git", "url": "https://github.com/marijnh/heckle.git"},
+  "license": "MIT",
+  "bin": {
+    "heckle": "heckle.js"
+  }
 }
