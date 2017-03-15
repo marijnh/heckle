@@ -105,8 +105,7 @@ function prepareMold(ctx) {
   var mold = new Mold(ctx)
   if (util.exists("_includes/", true))
     fs.readdirSync("_includes/").forEach(function(file) {
-      var name = file.match(/^(.*?)\.[^\.]+$/)[1]
-      mold.defs[name] = mold.bake(name, fs.readFileSync("_includes/" + file, "utf8"));
+      mold.bake(file.match(/^(.*?)\.[^\.]+$/)[1], fs.readFileSync("_includes/" + file, "utf8"));
     });
   return mold
 }
