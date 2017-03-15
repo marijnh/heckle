@@ -19,6 +19,6 @@
   "repository": {"type": "git", "url": "https://github.com/marijnh/heckle.git"},
   "license": "MIT",
   "bin": {
-    "heckle": "heckle.js"
+    "heckle": "./heckle.js"
   }
 }
