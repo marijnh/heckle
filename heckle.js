@@ -36,11 +36,13 @@ function getRenderMarkdown(config) {
 }
 
 function readPosts(config) {
+  var postsDir = "_posts/";
   var posts = [];
-  fs.readdirSync("_posts/").forEach(function(file) {
+  if (!fs.existsSync(postsDir)) return posts;
+  fs.readdirSync(postsDir).forEach(function(file) {
     var d = file.match(/^(\d{4})-(\d\d?)-(\d\d?)-(.+)\.(md|markdown|link|html)$/);
     if (!d) return;
-    var contents = readContents(fs.readFileSync("_posts/" + file, "utf8"));
+    var contents = readContents(fs.readFileSync(postsDir + file, "utf8"));
     var post = contents.frontMatter || {};
     post.date = new Date(d[1], d[2] - 1, d[3]);
     post.name = d[4];
