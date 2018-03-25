@@ -35,6 +35,6 @@ context information.
 
 [3]: http://marijnhaverbeke.nl/mold/
 
-At some point, more detailed docs, as well as commmand-line arguments,
+At some point, more detailed docs, as well as command-line arguments,
 might materialize. For now, read the code, it's (at the time of
 writing) less than 200 lines.
