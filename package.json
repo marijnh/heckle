@@ -11,8 +11,8 @@
   ],
   "dependencies": {
     "dateformat": "^3.0.0",
-    "markdown-it": "^8.4.2",
-    "markdown-it-anchor": "^5.0.0",
+    "markdown-it": "^12.0.0",
+    "markdown-it-anchor": "^8.6.0",
     "rimraf": "^2.6.3",
     "js-yaml": "^3.12.2",
     "codemirror": "^5.24.0",
