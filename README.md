@@ -1,3 +1,5 @@
+**This repository has been moved to https://code.haverbeke.berlin/marijn/heckle**
+
 # Heckle
 
 A minimal [Jekyll][1] clone in node.js.
